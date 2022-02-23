@@ -3,10 +3,10 @@ provider "azurerm" {
 }
 
 resource "random_string" "random" {
-  length = 5
-  special = false
-  upper = false
-  lower = false
+  length      = 5
+  special     = false
+  upper       = false
+  lower       = false
   min_numeric = 5
 }
 
@@ -16,6 +16,7 @@ resource "azurerm_resource_group" "default" {
 
   tags = {
     environment = "automation"
+    yor_trace   = "9353bcd8-94a2-49e3-8abd-f3328459760e"
   }
 }
 
@@ -51,6 +52,7 @@ resource "azurerm_kubernetes_cluster" "default" {
 
   tags = {
     environment = "automation"
+    yor_trace   = "20f56612-5c9e-4d92-b887-1bc68120b59f"
   }
 }
 

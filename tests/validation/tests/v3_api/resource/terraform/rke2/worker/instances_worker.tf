@@ -2,32 +2,33 @@ resource "aws_instance" "worker" {
   depends_on = [
     var.dependency
   ]
-  ami = var.aws_ami
-  instance_type = var.ec2_instance_class
-  count = var.no_of_worker_nodes
+  ami                  = var.aws_ami
+  instance_type        = var.ec2_instance_class
+  count                = var.no_of_worker_nodes
   iam_instance_profile = "${var.iam_role}"
   connection {
-    type = "ssh"
-    user = var.aws_user
-    host = self.public_ip
+    type        = "ssh"
+    user        = var.aws_user
+    host        = self.public_ip
     private_key = "${file(var.access_key)}"
   }
   root_block_device {
     volume_size = var.volume_size
     volume_type = "standard"
   }
-  subnet_id = var.subnets
+  subnet_id         = var.subnets
   availability_zone = var.availability_zone
   vpc_security_group_ids = [
     "${var.sg_id}"
   ]
   key_name = "jenkins-rke-validation"
   tags = {
-    Name = "${var.resource_name}-worker"
+    Name                              = "${var.resource_name}-worker"
     "kubernetes.io/cluster/clusterid" = "owned"
+    yor_trace                         = "93d9c634-f509-475d-8299-6afba710546a"
   }
   provisioner "file" {
-    source = "join_rke2_agent.sh"
+    source      = "join_rke2_agent.sh"
     destination = "/tmp/join_rke2_agent.sh"
   }
   provisioner "remote-exec" {
@@ -40,7 +41,7 @@ resource "aws_instance" "worker" {
 
 data "local_file" "master_ip" {
   depends_on = [var.dependency]
-  filename = "/tmp/${var.resource_name}_master_ip"
+  filename   = "/tmp/${var.resource_name}_master_ip"
 }
 
 locals {
@@ -49,7 +50,7 @@ locals {
 
 data "local_file" "token" {
   depends_on = [var.dependency]
-  filename = "/tmp/${var.resource_name}_nodetoken"
+  filename   = "/tmp/${var.resource_name}_nodetoken"
 }
 
 locals {
@@ -58,7 +59,7 @@ locals {
 
 data "local_file" "master_fixed_reg_addr" {
   depends_on = [var.dependency]
-  filename = "/tmp/${var.resource_name}_fixed_reg_addr"
+  filename   = "/tmp/${var.resource_name}_fixed_reg_addr"
 }
 
 locals {
