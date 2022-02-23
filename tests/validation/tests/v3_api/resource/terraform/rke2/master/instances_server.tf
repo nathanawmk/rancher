@@ -1,6 +1,6 @@
 resource "aws_instance" "master" {
-  ami           =  var.aws_ami
-  instance_type =  var.ec2_instance_class
+  ami                  = var.aws_ami
+  instance_type        = var.ec2_instance_class
   iam_instance_profile = "${var.iam_role}"
   connection {
     type        = "ssh"
@@ -12,13 +12,14 @@ resource "aws_instance" "master" {
     volume_size = var.volume_size
     volume_type = "standard"
   }
-  subnet_id = var.subnets
-  availability_zone = var.availability_zone
+  subnet_id              = var.subnets
+  availability_zone      = var.availability_zone
   vpc_security_group_ids = ["${var.sg_id}"]
-  key_name = "jenkins-rke-validation"
+  key_name               = "jenkins-rke-validation"
   tags = {
-    Name = "${var.resource_name}-server"
+    Name                              = "${var.resource_name}-server"
     "kubernetes.io/cluster/clusterid" = "owned"
+    yor_trace                         = "b806dfb8-d71b-4074-9856-63feaa7735e1"
   }
   provisioner "file" {
     source      = "install_rke2_master.sh"
@@ -48,10 +49,10 @@ resource "aws_instance" "master" {
 }
 
 resource "aws_instance" "master2" {
-  ami           =  var.aws_ami
-  instance_type =  var.ec2_instance_class
+  ami                  = var.aws_ami
+  instance_type        = var.ec2_instance_class
   iam_instance_profile = "${var.iam_role}"
-  count         = var.no_of_server_nodes
+  count                = var.no_of_server_nodes
   connection {
     type        = "ssh"
     user        = "${var.aws_user}"
@@ -62,15 +63,16 @@ resource "aws_instance" "master2" {
     volume_size = var.volume_size
     volume_type = "standard"
   }
-  subnet_id = var.subnets
-  availability_zone = var.availability_zone
+  subnet_id              = var.subnets
+  availability_zone      = var.availability_zone
   vpc_security_group_ids = ["${var.sg_id}"]
-  key_name = "jenkins-rke-validation"
+  key_name               = "jenkins-rke-validation"
   tags = {
-    Name = "${var.resource_name}-servers"
+    Name                              = "${var.resource_name}-servers"
     "kubernetes.io/cluster/clusterid" = "owned"
+    yor_trace                         = "3b21e509-1a5b-440d-8192-7f7847231d70"
   }
-  depends_on       = ["aws_instance.master"]
+  depends_on = ["aws_instance.master"]
   provisioner "file" {
     source      = "join_rke2_master.sh"
     destination = "/tmp/join_rke2_master.sh"
@@ -84,7 +86,7 @@ resource "aws_instance" "master2" {
 }
 
 data "local_file" "token" {
-  filename = "/tmp/${var.resource_name}_nodetoken"
+  filename   = "/tmp/${var.resource_name}_nodetoken"
   depends_on = ["aws_instance.master"]
 }
 
@@ -93,62 +95,77 @@ locals {
 }
 
 resource "local_file" "master_ips" {
-  content     = join("," , aws_instance.master.*.public_ip,aws_instance.master2.*.public_ip)
+  content  = join(",", aws_instance.master.*.public_ip, aws_instance.master2.*.public_ip)
   filename = "/tmp/${var.resource_name}_master_ips"
 }
 
 resource "aws_lb_target_group" "aws_tg_8443" {
-  port             = 8443
-  protocol         = "TCP"
-  vpc_id           = "${var.vpc_id}"
-  name             = "${var.resource_name}-tg-8443"
+  port     = 8443
+  protocol = "TCP"
+  vpc_id   = "${var.vpc_id}"
+  name     = "${var.resource_name}-tg-8443"
+  tags = {
+    yor_trace = "84d72b3f-6659-4eab-a6be-2993a380f3e3"
+  }
 }
 
 resource "aws_lb_target_group" "aws_tg_6443" {
-  port             = 6443
-  protocol         = "TCP"
-  vpc_id           = "${var.vpc_id}"
-  name             = "${var.resource_name}-tg-6443"
+  port     = 6443
+  protocol = "TCP"
+  vpc_id   = "${var.vpc_id}"
+  name     = "${var.resource_name}-tg-6443"
+  tags = {
+    yor_trace = "b75fb910-aa0f-47f1-a22f-7ea39a308a95"
+  }
 }
 
 resource "aws_lb_target_group" "aws_tg_9345" {
-  port             = 9345
-  protocol         = "TCP"
-  vpc_id           = "${var.vpc_id}"
-  name             = "${var.resource_name}-tg-9345"
+  port     = 9345
+  protocol = "TCP"
+  vpc_id   = "${var.vpc_id}"
+  name     = "${var.resource_name}-tg-9345"
+  tags = {
+    yor_trace = "2e94ca9e-ca49-4688-9ede-eb2661b1e4a7"
+  }
 }
 
 resource "aws_lb_target_group" "aws_tg_80" {
-  port             = 80
-  protocol         = "TCP"
-  vpc_id           = "${var.vpc_id}"
-  name             = "${var.resource_name}-tg-80"
+  port     = 80
+  protocol = "TCP"
+  vpc_id   = "${var.vpc_id}"
+  name     = "${var.resource_name}-tg-80"
   health_check {
-        protocol = "HTTP"
-        port = "traffic-port"
-        path = "/ping"
-        interval = 10
-        timeout = 6
-        healthy_threshold = 3
-        unhealthy_threshold = 3
-        matcher = "200-399"
+    protocol            = "HTTP"
+    port                = "traffic-port"
+    path                = "/ping"
+    interval            = 10
+    timeout             = 6
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    matcher             = "200-399"
+  }
+  tags = {
+    yor_trace = "7716a7eb-1ff7-497e-aa93-8aabaebb3fed"
   }
 }
 
 resource "aws_lb_target_group" "aws_tg_443" {
-  port             = 443
-  protocol         = "TCP"
-  vpc_id           = "${var.vpc_id}"
-  name             = "${var.resource_name}-tg-443"
+  port     = 443
+  protocol = "TCP"
+  vpc_id   = "${var.vpc_id}"
+  name     = "${var.resource_name}-tg-443"
   health_check {
-        protocol = "HTTP"
-        port = 80
-        path = "/ping"
-        interval = 10
-        timeout = 6
-        healthy_threshold = 3
-        unhealthy_threshold = 3
-        matcher = "200-399"
+    protocol            = "HTTP"
+    port                = 80
+    path                = "/ping"
+    interval            = 10
+    timeout             = 6
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    matcher             = "200-399"
+  }
+  tags = {
+    yor_trace = "72705c5e-d0be-4dc2-99f0-9cdbc13264aa"
   }
 }
 
@@ -231,6 +248,9 @@ resource "aws_lb" "aws_nlb" {
   load_balancer_type = "network"
   subnets            = ["${var.subnets}"]
   name               = "${var.resource_name}-nlb"
+  tags = {
+    yor_trace = "adffb477-9980-4b36-8dc4-41a9eea2aff8"
+  }
 }
 
 resource "aws_lb_listener" "aws_nlb_listener_8443" {
@@ -284,17 +304,17 @@ resource "aws_lb_listener" "aws_nlb_listener_443" {
 }
 
 resource "aws_route53_record" "aws_route53" {
-  zone_id            = "${data.aws_route53_zone.selected.zone_id}"
-  name               = "${var.resource_name}-route53"
-  type               = "CNAME"
-  ttl                = "300"
-  records            = ["${aws_lb.aws_nlb.dns_name}"]
-  depends_on         = ["aws_lb_listener.aws_nlb_listener_6443"]
+  zone_id    = "${data.aws_route53_zone.selected.zone_id}"
+  name       = "${var.resource_name}-route53"
+  type       = "CNAME"
+  ttl        = "300"
+  records    = ["${aws_lb.aws_nlb.dns_name}"]
+  depends_on = ["aws_lb_listener.aws_nlb_listener_6443"]
 }
 
 data "aws_route53_zone" "selected" {
-  name               = "${var.qa_space}"
-  private_zone       = false
+  name         = "${var.qa_space}"
+  private_zone = false
 }
 
 resource "null_resource" "update_kubeconfig" {
